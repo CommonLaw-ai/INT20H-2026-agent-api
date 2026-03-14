@@ -20,7 +20,9 @@ scheduler = AsyncIOScheduler()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    from analyzer import run_analysis
+    from analyzer_service.analyzer import run_analysis
+    from chat_agent.rag import setup_rag
+    await setup_rag()
     scheduler.add_job(run_analysis, "interval", seconds=60)
     scheduler.start()
     yield
@@ -78,6 +80,20 @@ async def initiate_chat(body: InitiateChatRequest):
         except httpx.RequestError as e:
             raise HTTPException(status_code=502, detail=str(e))
     return response.json()
+
+
+class ChatMessageRequest(BaseModel):
+    message: str
+
+
+@app.post("/chat/{chat_id}/message")
+async def chat_message(chat_id: int, body: ChatMessageRequest):
+    from chat_agent.agent import handle_message
+    try:
+        reply = await handle_message(chat_id, body.message)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    return {"reply": reply}
 
 
 @app.post("/reset_password/{user_id}")

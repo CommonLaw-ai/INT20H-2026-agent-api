@@ -17,7 +17,7 @@ class Settings(BaseSettings):
 
 settings = Settings()
 llm = OpenAI(base_url=settings.ollama_url, api_key="ollama")
-SYSTEM_PROMPT = Path("anomalies.md").read_text()
+SYSTEM_PROMPT = (Path(__file__).parent / "anomalies.md").read_text()
 
 
 async def run_analysis():
