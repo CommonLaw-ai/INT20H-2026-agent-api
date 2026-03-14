@@ -1,0 +1,103 @@
+CREATE TABLE users (
+    user_id       SERIAL PRIMARY KEY,
+    username      VARCHAR NOT NULL,
+    first_name    VARCHAR NOT NULL,
+    last_name     VARCHAR NOT NULL,
+    email         VARCHAR NOT NULL,
+    password_hash VARCHAR NOT NULL,
+    is_active     BOOLEAN NOT NULL,
+    has_subscription BOOLEAN NOT NULL,
+    created_at    TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at    TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE subscription_types (
+    subscription_type_id   SERIAL PRIMARY KEY,
+    subscription_type_name VARCHAR NOT NULL,
+    price                  FLOAT NOT NULL,
+    created_at             TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at             TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE subscriptions (
+    subscription_id      SERIAL PRIMARY KEY,
+    user_id              INTEGER NOT NULL REFERENCES users (user_id),
+    subscription_type_id INTEGER NOT NULL REFERENCES subscription_types (subscription_type_id),
+    last_paid_time       TIMESTAMP NOT NULL,
+    created_at           TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at           TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE priority_levels (
+    priority_level_id   SERIAL PRIMARY KEY,
+    priority_level_name VARCHAR NOT NULL
+);
+
+CREATE TABLE chat_statuses (
+    chat_status_id   SERIAL PRIMARY KEY,
+    chat_status_name VARCHAR NOT NULL,
+    created_at       TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at       TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE anomalies (
+    anomaly_id          SERIAL PRIMARY KEY,
+    anomaly_name        VARCHAR NOT NULL,
+    anomaly_description VARCHAR NOT NULL,
+    first_message       VARCHAR NOT NULL
+);
+
+CREATE TABLE chats (
+    chat_id          SERIAL PRIMARY KEY,
+    user_id          INTEGER REFERENCES users (user_id),
+    chat_messages    JSONB,
+    chat_status_id   INTEGER NOT NULL REFERENCES chat_statuses (chat_status_id),
+    created_by_llm   BOOLEAN NOT NULL,
+    anomaly_id       INTEGER REFERENCES anomalies (anomaly_id),
+    priority_level_id INTEGER NOT NULL REFERENCES priority_levels (priority_level_id),
+    created_at       TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at       TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE chat_reports (
+    id          SERIAL PRIMARY KEY,
+    chat_id     INTEGER NOT NULL UNIQUE REFERENCES chats (chat_id),
+    report_data JSONB,
+    created_at  TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at  TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE actions (
+    action_id          SERIAL PRIMARY KEY,
+    action_name        VARCHAR NOT NULL,
+    action_description VARCHAR NOT NULL,
+    is_allowed         BOOLEAN NOT NULL,
+    created_at         TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at         TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE action_request (
+    id          SERIAL PRIMARY KEY,
+    chat_id     INTEGER NOT NULL REFERENCES chats (chat_id),
+    action_id   INTEGER NOT NULL REFERENCES actions (action_id),
+    is_approved BOOLEAN NOT NULL,
+    created_at  TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at  TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE tickets (
+    id                 SERIAL PRIMARY KEY,
+    ticket_name        VARCHAR NOT NULL,
+    ticket_description VARCHAR NOT NULL,
+    created_at         TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at         TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE logs (
+    log_id      SERIAL PRIMARY KEY,
+    user_id     INTEGER REFERENCES users (user_id),
+    log_message VARCHAR NOT NULL,
+    log_type    VARCHAR NOT NULL,
+    created_at  TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at  TIMESTAMP NOT NULL DEFAULT NOW()
+);
