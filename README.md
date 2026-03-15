@@ -73,10 +73,3 @@ uvicorn main:app --reload --port 8000
 | POST | `/refund_charge/{user_id}/` | Proxy: refund duplicate charge |
 | POST | `/notify_user/{user_id}/` | Proxy: notify user via email |
 
-## Local Testing (without back-app)
-
-```bash
-python test_chat.py
-```
-
-Mocks all HTTP calls to back-app, uses real Ollama + pgvector.
