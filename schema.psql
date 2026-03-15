@@ -76,6 +76,12 @@ CREATE TABLE actions (
     updated_at         TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
+-- RAG: stores embeddings for actions (separate to avoid touching actions table)
+CREATE TABLE action_embeddings (
+    action_id INTEGER PRIMARY KEY REFERENCES actions (action_id),
+    embedding vector(768) NOT NULL
+);
+
 CREATE TABLE action_request (
     id          SERIAL PRIMARY KEY,
     chat_id     INTEGER NOT NULL REFERENCES chats (chat_id),
