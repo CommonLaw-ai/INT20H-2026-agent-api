@@ -10,7 +10,6 @@ Per turn the agent either:
   - invokes an action via JSON → action_executor → closes chat
 """
 import json
-import re
 import httpx
 from openai import OpenAI
 from pydantic_settings import BaseSettings
@@ -22,7 +21,7 @@ from chat_agent.action_executor import execute_action
 
 class Settings(BaseSettings):
     ollama_url: str = "http://localhost:11434/v1"
-    ollama_model: str = "qwen2.5:7b"
+    ollama_model: str = "llama3.1:8b"
     api_base_url: str = "http://localhost:8000"
 
     class Config:
@@ -35,13 +34,13 @@ llm = OpenAI(base_url=settings.ollama_url, api_key="ollama")
 
 
 def _extract_action(text: str) -> dict | None:
-    """Find {"action": ..., "reason": ...} block in LLM response."""
-    match = re.search(r'\{[^{}]*"action"\s*:[^{}]*\}', text)
-    if match:
-        try:
-            return json.loads(match.group())
-        except json.JSONDecodeError:
-            pass
+    """Try to parse the entire response as an action JSON."""
+    try:
+        data = json.loads(text.strip())
+        if isinstance(data, dict) and "action" in data:
+            return data
+    except json.JSONDecodeError:
+        pass
     return None
 
 
@@ -94,4 +93,6 @@ async def handle_message(chat_id: int, user_message: str) -> str:
                 json={"status": "resolved"},
             )
 
+    if action_call:
+        return "Дякуємо, ми обробили ваш запит. Розмову завершено."
     return agent_reply

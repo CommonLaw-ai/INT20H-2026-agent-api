@@ -17,7 +17,7 @@ import httpx
 from dataclasses import dataclass, field
 from pydantic_settings import BaseSettings
 
-PROMPT_TEMPLATE = (Path(__file__).parent / "prompt.md").read_text()
+PROMPT_TEMPLATE = (Path(__file__).parent / "prompt.md").read_text(encoding="utf-8")
 
 
 class Settings(BaseSettings):
