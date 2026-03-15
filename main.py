@@ -109,3 +109,46 @@ async def reset_password(user_id: str):
         except httpx.RequestError as e:
             raise HTTPException(status_code=502, detail=str(e))
     return response.json()
+
+
+class ActionRequest(BaseModel):
+    chat_id: int
+    user_id: int
+
+
+class NotifyRequest(BaseModel):
+    chat_id: int
+    user_id: int
+    message: str = ""
+
+
+@app.post("/refund_charge/{user_id}/")
+async def refund_charge(user_id: int, body: ActionRequest):
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.post(
+                f"{settings.external_api_url}/bo/execute_action/refund_charge",
+                json={"chat_id": body.chat_id, "user_id": user_id},
+            )
+            response.raise_for_status()
+        except httpx.HTTPStatusError as e:
+            raise HTTPException(status_code=e.response.status_code, detail=e.response.text)
+        except httpx.RequestError as e:
+            raise HTTPException(status_code=502, detail=str(e))
+    return response.json()
+
+
+@app.post("/notify_user/{user_id}/")
+async def notify_user(user_id: int, body: NotifyRequest):
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.post(
+                f"{settings.external_api_url}/bo/execute_action/notify_user",
+                json={"chat_id": body.chat_id, "user_id": user_id, "message": body.message},
+            )
+            response.raise_for_status()
+        except httpx.HTTPStatusError as e:
+            raise HTTPException(status_code=e.response.status_code, detail=e.response.text)
+        except httpx.RequestError as e:
+            raise HTTPException(status_code=502, detail=str(e))
+    return response.json()

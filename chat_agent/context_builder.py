@@ -76,7 +76,7 @@ async def build_context(chat_id: int) -> ChatContext:
         # TODO: replace with real external API endpoint paths once confirmed
         chat_resp = await http.get(f"{settings.api_base_url}/chat/{chat_id}")
         chat_resp.raise_for_status()
-        chat = chat_resp.json()
+        chat = chat_resp.json().get("data", chat_resp.json())
 
         user_id = chat["user_id"]
         anomaly_id = chat["anomaly_id"]
@@ -90,7 +90,7 @@ async def build_context(chat_id: int) -> ChatContext:
         user = user_resp.json()
 
         logs_resp = await http.get(
-            f"{settings.api_base_url}/logs",
+            f"{settings.api_base_url}/user_logs",
             params={"user_id": user_id, "for_seconds": 3600},
         )
         logs_resp.raise_for_status()
@@ -107,7 +107,10 @@ async def build_context(chat_id: int) -> ChatContext:
         has_subscription=user["has_subscription"],
         subscription_type=user.get("subscription_type", "unknown"),
         user_since=str(user.get("created_at", "unknown")),
-        chat_messages=chat.get("chat_messages") or [],
+        chat_messages=[
+            {"role": m.get("role", "user"), "content": m.get("content") or m.get("text", "")}
+            for m in (chat.get("chat_messages") or [])
+        ],
         user_logs=user_logs,
         # available_actions is injected by agent.py after RAG search
     )

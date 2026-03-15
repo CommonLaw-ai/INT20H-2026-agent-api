@@ -86,12 +86,9 @@ async def handle_message(chat_id: int, user_message: str) -> str:
             ],
         )
 
-        # 6. Close chat if action was executed
-        if action_call:
-            await http.patch(
-                f"{settings.api_base_url}/chat/{chat_id}",
-                json={"status": "resolved"},
-            )
+        # 6. Close chat if action was executed (escalate sets pending, not resolved)
+        if action_call and action_call["action"] != "escalate":
+            await http.post(f"{settings.api_base_url}/bo/chat/{chat_id}/resolve")
 
     if action_call:
         return "Дякуємо, ми обробили ваш запит. Розмову завершено."

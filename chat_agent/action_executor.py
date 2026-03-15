@@ -40,21 +40,21 @@ async def execute_action(
                     )
 
                 case "refund_charge":
-                    # TODO: confirm endpoint with backend teammate
                     resp = await http.post(
-                        f"{settings.api_base_url}/refund_charge/{user_id}/"
+                        f"{settings.api_base_url}/refund_charge/{user_id}/",
+                        json={"chat_id": chat_id, "user_id": user_id},
                     )
 
                 case "notify_user":
-                    # TODO: confirm endpoint with backend teammate
                     resp = await http.post(
-                        f"{settings.api_base_url}/notify_user/{user_id}/"
+                        f"{settings.api_base_url}/notify_user/{user_id}/",
+                        json={"chat_id": chat_id, "user_id": user_id, "message": reason},
                     )
 
                 case "escalate":
                     resp = await http.patch(
-                        f"{settings.api_base_url}/chat/{chat_id}",
-                        json={"status": "pending"},
+                        f"{settings.api_base_url}/bo/chat/{chat_id}",
+                        json={"escalate_to_human": True, "message": reason},
                     )
 
                 case _:
